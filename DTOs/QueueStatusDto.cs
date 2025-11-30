@@ -4,6 +4,7 @@ namespace QueueBookingAPI.DTOs
     {
         public int CurrentServing { get; set; }
         public int? WindowNumber { get; set; }
+        public string? WindowName { get; set; }
         public int WaitingCount { get; set; }
         public int CompletedCount { get; set; }
         public int TotalBookings { get; set; }

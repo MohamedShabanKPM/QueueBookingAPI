@@ -51,7 +51,13 @@ namespace QueueBookingAPI.Controllers
                     QueueNumber = booking.QueueNumber,
                     Status = booking.Status,
                     WindowNumber = booking.Window?.Number,
-                    DisplayName = booking.DisplayName
+                    WindowName = booking.Window?.Name,
+                    DisplayName = booking.DisplayName,
+                    ActualStartTime = booking.ActualStartTime,
+                    ActualEndTime = booking.ActualEndTime,
+                    TimeTaken = booking.TimeTaken,
+                    StartedByUserId = booking.StartedByUserId,
+                    StartedByName = booking.StartedByUser?.Name
                 };
 
                 return Ok(response);
@@ -72,6 +78,11 @@ namespace QueueBookingAPI.Controllers
         {
             try
             {
+                // If no date provided, default to today
+                if (!date.HasValue)
+                {
+                    date = DateTime.Today;
+                }
                 var bookings = await _bookingService.GetBookingsAsync(date, status);
                 var response = bookings.Select(b => new BookingResponseDto
                 {
@@ -83,7 +94,13 @@ namespace QueueBookingAPI.Controllers
                     QueueNumber = b.QueueNumber,
                     Status = b.Status,
                     WindowNumber = b.Window?.Number,
-                    DisplayName = b.DisplayName
+                    WindowName = b.Window?.Name,
+                    DisplayName = b.DisplayName,
+                    ActualStartTime = b.ActualStartTime,
+                    ActualEndTime = b.ActualEndTime,
+                    TimeTaken = b.TimeTaken,
+                    StartedByUserId = b.StartedByUserId,
+                    StartedByName = b.StartedByUser?.Name
                 }).ToList();
 
                 return Ok(response);
@@ -102,6 +119,13 @@ namespace QueueBookingAPI.Controllers
             {
                 var bookings = await _bookingService.GetBookingsAsync();
                 var booking = bookings.FirstOrDefault(b => b.Id == id);
+                
+                // If not found in today's bookings, search all bookings
+                if (booking == null)
+                {
+                    var allBookings = await _bookingService.GetBookingsAsync(null, null);
+                    booking = allBookings.FirstOrDefault(b => b.Id == id);
+                }
 
                 if (booking == null)
                     return NotFound();
@@ -116,7 +140,13 @@ namespace QueueBookingAPI.Controllers
                     QueueNumber = booking.QueueNumber,
                     Status = booking.Status,
                     WindowNumber = booking.Window?.Number,
-                    DisplayName = booking.DisplayName
+                    WindowName = booking.Window?.Name,
+                    DisplayName = booking.DisplayName,
+                    ActualStartTime = booking.ActualStartTime,
+                    ActualEndTime = booking.ActualEndTime,
+                    TimeTaken = booking.TimeTaken,
+                    StartedByUserId = booking.StartedByUserId,
+                    StartedByName = booking.StartedByUser?.Name
                 };
 
                 return Ok(response);
@@ -201,7 +231,13 @@ namespace QueueBookingAPI.Controllers
                     QueueNumber = booking.QueueNumber,
                     Status = booking.Status,
                     WindowNumber = booking.Window?.Number,
-                    DisplayName = booking.DisplayName
+                    WindowName = booking.Window?.Name,
+                    DisplayName = booking.DisplayName,
+                    ActualStartTime = booking.ActualStartTime,
+                    ActualEndTime = booking.ActualEndTime,
+                    TimeTaken = booking.TimeTaken,
+                    StartedByUserId = booking.StartedByUserId,
+                    StartedByName = booking.StartedByUser?.Name
                 };
 
                 return Ok(response);

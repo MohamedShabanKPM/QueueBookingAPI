@@ -22,6 +22,7 @@ namespace QueueBookingAPI.Services
             await RefreshStatisticsAsync(tracking);
 
             var windowNumber = (int?)null;
+            var windowName = (string?)null;
             if (tracking.CurrentServingNumber > 0)
             {
                 var booking = await _context.QueueBookings
@@ -35,6 +36,7 @@ namespace QueueBookingAPI.Services
                 if (booking?.Window != null)
                 {
                     windowNumber = booking.Window.Number;
+                    windowName = booking.Window.Name;
                 }
             }
 
@@ -42,6 +44,7 @@ namespace QueueBookingAPI.Services
             {
                 CurrentServing = tracking.CurrentServingNumber,
                 WindowNumber = windowNumber,
+                WindowName = windowName,
                 WaitingCount = tracking.WaitingCount,
                 CompletedCount = tracking.CompletedCount,
                 TotalBookings = tracking.TotalBookings,

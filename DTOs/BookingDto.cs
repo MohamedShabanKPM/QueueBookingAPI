@@ -18,7 +18,13 @@ namespace QueueBookingAPI.DTOs
         public int QueueNumber { get; set; }
         public string Status { get; set; } = string.Empty;
         public int? WindowNumber { get; set; }
+        public string? WindowName { get; set; }
         public string DisplayName { get; set; } = string.Empty;
+        public DateTime? ActualStartTime { get; set; }
+        public DateTime? ActualEndTime { get; set; }
+        public string? TimeTaken { get; set; }
+        public int? StartedByUserId { get; set; }
+        public string? StartedByName { get; set; }
     }
 
     public class BookingUpdateDto

@@ -90,6 +90,8 @@ namespace QueueBookingAPI.Services
 
             // First try to get waiting without window
             var waiting = await _context.QueueBookings
+                .Include(b => b.Window)
+                .Include(b => b.StartedByUser)
                 .Where(b => b.Status == "waiting" &&
                            b.BookingDate >= today &&
                            b.BookingDate < tomorrow &&
@@ -101,6 +103,8 @@ namespace QueueBookingAPI.Services
             if (waiting == null)
             {
                 waiting = await _context.QueueBookings
+                    .Include(b => b.Window)
+                    .Include(b => b.StartedByUser)
                     .Where(b => b.Status == "waiting" &&
                                b.BookingDate >= today &&
                                b.BookingDate < tomorrow)
