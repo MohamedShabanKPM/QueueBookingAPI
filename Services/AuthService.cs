@@ -42,12 +42,13 @@ namespace QueueBookingAPI.Services
 
         private string GenerateJwtToken(User user)
         {
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Name),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim("role", user.Role) // Add role claim with short name for JWT compatibility
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
@@ -87,6 +88,66 @@ namespace QueueBookingAPI.Services
             await _context.SaveChangesAsync();
 
             return user;
+        }
+
+        public async Task<List<User>> GetAllUsersAsync()
+        {
+            return await _context.Users
+                .OrderBy(u => u.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<User?> UpdateUserAsync(int userId, string? name, string? email, string? password, string? role)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                user.Name = name;
+            }
+
+            if (!string.IsNullOrEmpty(email))
+            {
+                var existingUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email == email && u.Id != userId);
+                
+                if (existingUser != null)
+                {
+                    throw new InvalidOperationException("User with this email already exists");
+                }
+                
+                user.Email = email;
+            }
+
+            if (!string.IsNullOrEmpty(password))
+            {
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
+            }
+
+            if (!string.IsNullOrEmpty(role))
+            {
+                user.Role = role;
+            }
+
+            await _context.SaveChangesAsync();
+            return user;
+        }
+
+        public async Task<bool> DeleteUserAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

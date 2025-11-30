@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using QueueBookingAPI.Data;
 using QueueBookingAPI.Services;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,11 +46,44 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "QueueBookingAPI",
         ValidAudience = builder.Configuration["Jwt:Audience"] ?? "QueueBookingClient",
         IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-            System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "YourSuperSecretKeyThatIsAtLeast32CharactersLong!"))
+            System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "YourSuperSecretKeyThatIsAtLeast32CharactersLong!")),
+        RoleClaimType = ClaimTypes.Role
+    };
+    
+    // Map role claim from JWT token to ASP.NET Core role claim
+    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    {
+        OnTokenValidated = context =>
+        {
+            var claimsIdentity = context.Principal?.Identity as System.Security.Claims.ClaimsIdentity;
+            if (claimsIdentity != null)
+            {
+                // Check for role claim with short name and map it to ClaimTypes.Role
+                var roleClaim = claimsIdentity.FindFirst("role");
+                if (roleClaim != null && !claimsIdentity.HasClaim(System.Security.Claims.ClaimTypes.Role, roleClaim.Value))
+                {
+                    claimsIdentity.AddClaim(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, roleClaim.Value));
+                }
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Add policy for Admin role (case-insensitive)
+    options.AddPolicy("AdminOnly", policy => 
+        policy.RequireAssertion(context =>
+        {
+            var roleClaim = context.User.FindFirst(ClaimTypes.Role);
+            if (roleClaim != null)
+            {
+                return string.Equals(roleClaim.Value, "Admin", StringComparison.OrdinalIgnoreCase);
+            }
+            return false;
+        }));
+});
 
 // Services
 builder.Services.AddScoped<QueueBookingService>();
