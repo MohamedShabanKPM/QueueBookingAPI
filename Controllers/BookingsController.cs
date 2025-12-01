@@ -249,6 +249,24 @@ namespace QueueBookingAPI.Controllers
             }
         }
 
+        [HttpPost("{id}/update-window")]
+        public async Task<IActionResult> UpdateBookingWindow(int id, [FromQuery] int? windowId)
+        {
+            try
+            {
+                var booking = await _bookingService.UpdateBookingWindowAsync(id, windowId);
+                if (booking == null)
+                    return NotFound();
+
+                return Ok(new { message = "Window updated", bookingId = booking.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating booking window");
+                return StatusCode(500, new { error = "An error occurred" });
+            }
+        }
+
         [HttpGet("dashboard")]
         public async Task<IActionResult> GetDashboard([FromQuery] DateTime? date)
         {

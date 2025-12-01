@@ -140,7 +140,7 @@ namespace QueueBookingAPI.Services
                 return null;
 
             var userWindow = await GetUserWindowAsync(userId);
-            if (userWindow != null && booking.WindowId == null)
+            if (userWindow != null)
             {
                 booking.WindowId = userWindow.WindowId;
             }
@@ -347,6 +347,21 @@ namespace QueueBookingAPI.Services
                 .Where(u => u.UserId == userId && u.IsActive)
                 .OrderByDescending(u => u.AssignTime)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<QueueBooking?> UpdateBookingWindowAsync(int bookingId, int? windowId)
+        {
+            var booking = await _context.QueueBookings
+                .Include(b => b.Window)
+                .FirstOrDefaultAsync(b => b.Id == bookingId);
+
+            if (booking == null)
+                return null;
+
+            booking.WindowId = windowId;
+            await _context.SaveChangesAsync();
+
+            return booking;
         }
 
         private async Task<QueueTracking> GetTodayTrackingAsync()
